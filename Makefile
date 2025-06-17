@@ -32,7 +32,7 @@ OBJS = \
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
-#TOOLPREFIX = 
+#TOOLPREFIX =
 
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX
@@ -81,7 +81,7 @@ endif
 LDFLAGS = -z max-page-size=4096
 
 $K/kernel: $(OBJS) $K/kernel.ld $U/initcode
-	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS) 
+	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS)
 	$(OBJDUMP) -S $K/kernel > $K/kernel.asm
 	$(OBJDUMP) -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
 
@@ -145,7 +145,7 @@ fs.img: mkfs/mkfs README $(UPROGS)
 
 -include kernel/*.d user/*.d
 
-clean: 
+clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*/*.o */*.d */*.asm */*.sym \
 	$U/initcode $U/initcode.out $K/kernel fs.img \
@@ -178,3 +178,30 @@ qemu-gdb: $K/kernel .gdbinit fs.img
 	@echo "*** Now run 'gdb' in another window." 1>&2
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 
+ifeq ($(LAB),net)
+# try to generate a unique port for the echo server
+SERVERPORT = $(shell expr `id -u` % 5000 + 25099)
+
+endif
+
+##
+##  FOR testing lab grading script
+##
+
+ifneq ($(V),@)
+GRADEFLAGS += -v
+endif
+
+print-gdbport:
+	@echo $(GDBPORT)
+
+grade:
+	@echo $(MAKE) clean
+	@$(MAKE) clean || \
+          (echo "'make clean' failed.  HINT: Do you have another running instance of xv6?" && exit 1)
+	./grade-lab-$(LAB) $(GRADEFLAGS)
+
+# Command to start gdb allowing auto-load from the cur dir
+gdb:
+	gdb -iex "set auto-load safe-path ."
+.PHONY: gdb
