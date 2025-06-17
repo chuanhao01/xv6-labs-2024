@@ -61,7 +61,7 @@ endif
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
-#TOOLPREFIX = 
+#TOOLPREFIX =
 
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX
@@ -374,4 +374,8 @@ submit-check:
 zipball: clean submit-check
 	git archive --verbose --format zip --output lab.zip HEAD
 
-.PHONY: zipball clean grade submit-check
+# Command to start gdb allowing auto-load from the cur dir
+gdb:
+	gdb -iex "set auto-load safe-path ."
+
+.PHONY: zipball clean grade submit-check gdb
