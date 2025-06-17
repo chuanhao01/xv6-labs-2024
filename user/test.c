@@ -1,37 +1,25 @@
 #include "kernel/types.h"
-#include "kernel/fcntl.h"
 #include "user/user.h"
 
+char *s = "123";
+
 int
-main(int argc, char *argv[])
+main(int ac, char **av)
 {
-  int p1[2], p2[2];
-  char ball = 'b';
+  char s1[4] = {'1', '2', '3', '\0'};
 
-  pipe(p1);
-  pipe(p2);
+  // s and s1 are strings
+  printf("s %s s1 %s\n", s, s1);
 
-  if(fork() == 0){
-    close(p1[1]);
-    close(p2[0]);
+  // can use index or pointer access
+  printf("%c %c\n", s[0], *s);
+  printf("%c %c\n", s[2], *(s+2));
 
-    char buf[20];
-    read(p1[0], &buf, 1);
-    printf("buf: %d\n", buf[0]);
+  // read beyond str end; DON'T DO THIS
+  printf("%x %p %p\n", s1[4], s1, &s1[4]);
 
-    // read(p1[0], &ball, 1);
-    fprintf(1, "%d: received ping\n", getpid());
-    write(p2[1], &ball, 1);
-    close(p1[0]);
-    close(p2[1]);
-  } else {
-    close(p1[0]);
-    close(p2[1]);
-    write(p1[1], &ball, 1);
-    read(p2[0], &ball, 1);
-    fprintf(1, "%d: received pong\n", getpid());
-    close(p1[1]);
-    close(p2[0]);
-  }
-  exit(0);
+  // write beyond str end; DON'T DO THIS
+  s1[4] = 'D';
+
+  return 0;
 }
