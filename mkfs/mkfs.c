@@ -134,7 +134,7 @@ main(int argc, char *argv[])
       shortname = argv[i] + 5;
     else
       shortname = argv[i];
-    
+
     assert(index(shortname, '/') == 0);
 
     if((fd = open(argv[i], 0)) < 0)
@@ -148,12 +148,22 @@ main(int argc, char *argv[])
       shortname += 1;
 
     assert(strlen(shortname) <= DIRSIZ);
-    
+
     inum = ialloc(T_FILE);
 
     bzero(&de, sizeof(de));
     de.inum = xshort(inum);
-    strncpy(de.name, shortname, DIRSIZ);
+
+    // WARNING: ch01
+    // On my nixos system there is the warning when running `make qemu`:
+    // error: ‘__builtin_strncpy’ specified bound 14 equals destination size [-Werror=stringop-truncation]
+    // I believe this is due to a newer version of gcc and got a quick fix for it (Might have unintended side effects? Who knows, I'm not good at C yet)
+    //
+    // strncpy(de.name, shortname, DIRSIZ);
+    // FIX:
+    strncpy(de.name, shortname, DIRSIZ-1);
+    de.name[DIRSIZ - 1] = '\0';
+
     iappend(rootino, &de, sizeof(de));
 
     while((cc = read(fd, buf, sizeof(buf))) > 0)
