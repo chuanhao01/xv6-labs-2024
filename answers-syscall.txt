@@ -1,0 +1,38 @@
+# Looking at the backtrace output, which function called syscall?
+
+The backtrace from gdb looks like this.
+```
+#0  syscall () at kernel/syscall.c:133
+#1  0x0000000080001bf4 in usertrap () at kernel/trap.c:67
+#2  0x0000000000000000 in ?? ()
+```
+
+If I had to guess, it came from `usertrap()` function at `kernel/trap.c:67`.
+
+# What is the value of p->trapframe->a7 and what does that value represent? (Hint: look user/initcode.S, the first user program xv6 starts.)
+
+p->trapframe->a7 = 0x7 = 7
+It represents the syscall_exec which has the value 7 based on syscall.h
+
+
+# What was the previous mode that the CPU was in?
+sstatus = 1000000000000000000000000000100010
+                                   876543210
+
+Bit 8 is 0, the previous mode was user mode
+
+# Write down the assembly instruction the kernel is panicing at. Which register corresponds to the variable num?
+Output from qemu: `scause=0xd sepc=0x80001e74 stval=0x0`
+From `kernel/kernel.asm`
+```
+    80001e74:	00002683          	lw	a3,0(zero) # 0 <_entry-0x80000000>
+```
+register a3?
+
+# Why does the kernel crash? Hint: look at figure 3-3 in the text; is address 0 mapped in the kernel address space? Is that confirmed by the value in scause above? (See description of scause in RISC-V privileged instructions)
+
+From table 4.2: `13| Load page faul`
+
+# What is the name of the process that was running when the kernel paniced? What is its process id (pid)?
+Using `p p->name` I can look at the memory that the `struct` `p` is holding before it panics.
+To look for the pid, I can then print it out with `p p->pid`
