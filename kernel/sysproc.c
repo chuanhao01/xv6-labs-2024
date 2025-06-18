@@ -91,3 +91,15 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// lab part 2 syscall to implement
+uint64
+sys_trace(void)
+{
+  int n;
+  struct proc *p = myproc();
+
+  argint(0, &n);
+  p->trace_bm = n;
+  return 0;
+}

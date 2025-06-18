@@ -104,4 +104,7 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  // trace bit mask
+  int trace_bm; // counting from right, if there is a 1, that means the trace for that sys_call should be turned on
 };
