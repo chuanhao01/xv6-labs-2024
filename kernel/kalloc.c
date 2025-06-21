@@ -48,6 +48,7 @@ kfree(void *pa)
 {
   struct run *r;
 
+  // (char*)pa < end should be referring to trying to free memory smaller than the end of kernel pages
   if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
     panic("kfree");
 
