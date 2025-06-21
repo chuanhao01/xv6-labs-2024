@@ -132,6 +132,13 @@ found:
     return 0;
   }
 
+  // usyscall
+  if((p->usyscall = (struct usyscall *)kalloc()) == 0){
+    freeproc(p);
+    release(&p->lock);
+    return 0;
+  }
+
   // An empty user page table.
   p->pagetable = proc_pagetable(p);
   if(p->pagetable == 0){
@@ -158,6 +165,9 @@ freeproc(struct proc *p)
   if(p->trapframe)
     kfree((void*)p->trapframe);
   p->trapframe = 0;
+  if(p->usyscall)
+    kfree((void*)p->usyscall);
+  p->usyscall = 0; // Set it to 0 because?
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
   p->pagetable = 0;
@@ -202,20 +212,12 @@ proc_pagetable(struct proc *p)
     return 0;
   }
 
-
-  struct usyscall *pusyscall;
-  if((pusyscall = kalloc()) == 0){
-    freeproc(p);
-    release(&p->lock);
-    return 0;
-  }
   // map the usyscall page
-  if(mappages(pagetable, USYSCALL, PGSIZE, (uint64)pusyscall, PTE_R | PTE_W | PTE_X ) < 0){
+  if(mappages(pagetable, USYSCALL, PGSIZE, (uint64)(p->usyscall), PTE_R | PTE_U) < 0){
     uvmunmap(pagetable, USYSCALL, 1, 0);
     uvmfree(pagetable, 0);
     return 0;
   }
-
 
   return pagetable;
 }
@@ -227,6 +229,7 @@ proc_freepagetable(pagetable_t pagetable, uint64 sz)
 {
   uvmunmap(pagetable, TRAMPOLINE, 1, 0);
   uvmunmap(pagetable, TRAPFRAME, 1, 0);
+  uvmunmap(pagetable, USYSCALL, 1, 0); // Clean up the pa and va page
   uvmfree(pagetable, sz);
 }
 
@@ -256,6 +259,9 @@ userinit(void)
   // and data into it.
   uvmfirst(p->pagetable, initcode, sizeof(initcode));
   p->sz = PGSIZE;
+
+  // Write the pid to memory for usyscall
+  p->usyscall->pid = p->pid;
 
   // prepare for the very first "return" from kernel to user.
   p->trapframe->epc = 0;      // user program counter
@@ -313,6 +319,11 @@ fork(void)
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
+
+  // Set the new pid of the fork, we do not need to copy
+  // the old usyscall, since allocproc sets up the va and struct for us
+  // We just need to set the pid there
+  np->usyscall->pid = np->pid;
 
   // Cause fork to return 0 in the child.
   np->trapframe->a0 = 0;
@@ -644,6 +655,7 @@ killed(struct proc *p)
   int k;
 
   acquire(&p->lock);
+
   k = p->killed;
   release(&p->lock);
   return k;
