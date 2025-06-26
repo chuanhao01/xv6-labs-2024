@@ -489,21 +489,108 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
 
 
 #ifdef LAB_PGTBL
-void
-vmprint(pagetable_t pagetable) {
-  // your code here
-  printf("page table %p\n", pagetable);
-  for(int i=0; i < 10; i++){
-
+void vmprint_pa(pagetable_t pagetable, uint64 va)
+{
+  if (va >= MAXVA){
+    panic("vmprint_pa");
   }
-  // printf("%p\n", (void *)pagetable[0]);
+  for (int level = 2; level >= 0; level--)
+  {
+    int page_offset = PX(level, va); // can also be thought of as a page no.
+    pagetable_t pte_pa = &pagetable[page_offset];
+    pte_t pte = *pte_pa;
+    // Check if the PTE is valid
+    if ((pte & PTE_V) == 0)
+    {
+      // Skip this one
+      break;
+    }
+
+    printf("..");
+    for (int ii = 0; ii < 2 - level; ii++)
+    {
+      printf(" ..");
+    }
+    printf("%p: pte %p pa %p\n", (void *)va, (void *)pte, pte_pa);
+    pagetable = (pagetable_t)PTE2PA(pte);
+  }
 }
 
 void
-dbvmprint(pagetable_t pagetable) {
+vmprint(pagetable_t pagetable)
+{
   // your code here
   printf("page table %p\n", pagetable);
-  // printf("%p\n", (void *)pagetable[0]);
+  for (uint64 i = 0; i < 20; i++)
+  {
+    // Step through the va
+    uint64 va = PGSIZE * i;
+    vmprint_pa(pagetable, va);
+  }
+}
+
+// Gonna write all the macros i am using, so I can learn
+#define getmem(addr) ((void *)*addr)
+
+void dbvmprint(pagetable_t pagetable)
+{
+  // your code here
+  printf("%p\n", (uint64 *)(MAXVA / PGSIZE));
+  printf("%ld\n", (MAXVA / PGSIZE));
+  printf("%ld\n", MAXVA);
+  // printf("i=%d %p %p\n", 1, pagetable+(int)1, getmem(pagetable+1));
+  // printf("%d\n", PXSHIFT(2));
+
+  // int is ok
+  // for (uint64 i = 0; i < 20; i++)
+  // for (int i = 0; i < MAXVA / PGSIZE / 512; i++)
+  // for (uint64 i = 0; i < 20; i++)
+  // {
+  //   // Step through the va
+  //   uint64 va = PGSIZE * i;
+  //   // printf("%p\n", (void *)pagetable[PX(2, va)]);
+  //   // printf("%ld\n", pagetable[PX(2, va)] & PTE_V);
+  //   for (int level=2; level > 0; level--){
+  //     int page_offset = PX(level, va); // can also be thought of as a page no.
+  //     pagetable_t *pte_pa = &pagetable[page_offset];
+  //     pte_t *pte = *pte_pa;
+  //     printf("..");
+  //     for (int ii=0; ii<2-level; ii++){
+  //       printf(" ..");
+  //     }
+  //     printf("\n");
+  //   }
+  //   // printf("%ld %p\n", i, (void *)(va >> PGSHIFT));
+  // }
+
+  return;
+  printf("i=%d %p %p\n", 0, pagetable, getmem(pagetable));
+  printf("i=%d %p %p\n", 511, pagetable + 511, getmem(pagetable + 511));
+  for (int i = 0; i < 512; i++)
+  {
+    // Shift the pagetable pointer up by 1
+    pte_t pte = pagetable[i];
+    if (pte == 0)
+    {
+      continue;
+    }
+    printf("i=%d pagetable %p mem %p nextpa? %p\n",
+           i, pagetable + i, getmem(pagetable + i), (void *)(PTE2PA(pagetable[i])));
+    printf("value at pte %p\n", (uint64 *)*(uint64 *)PTE2PA(pte));
+
+    // Is a valid PTE
+    // if ((pte & PTE_V) && (pte & (PTE_R | PTE_W | PTE_X)) == 0)
+    // {
+    //   // this PTE points to a lower-level page table.
+    //   uint64 child = PTE2PA(pte);
+    //   freewalk((pagetable_t)child);
+    //   pagetable[i] = 0; // ok idk about this
+    // }
+    // else if (pte & PTE_V)
+    // {
+    //   panic("freewalk: leaf");
+    // }
+  }
 }
 #endif
 
