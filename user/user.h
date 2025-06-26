@@ -36,6 +36,7 @@ int recv(uint32, uint32*, uint32*, char *, uint32);
 int ugetpid(void);
 uint64 pgpte(void*);
 void kpgtbl(void);
+void dbkpgtbl(void); // Debug kpgtbl syscall, mainly for learning
 #endif
 
 // ulib.c

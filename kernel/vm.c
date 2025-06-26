@@ -492,6 +492,18 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
 void
 vmprint(pagetable_t pagetable) {
   // your code here
+  printf("page table %p\n", pagetable);
+  for(int i=0; i < 10; i++){
+
+  }
+  // printf("%p\n", (void *)pagetable[0]);
+}
+
+void
+dbvmprint(pagetable_t pagetable) {
+  // your code here
+  printf("page table %p\n", pagetable);
+  // printf("%p\n", (void *)pagetable[0]);
 }
 #endif
 

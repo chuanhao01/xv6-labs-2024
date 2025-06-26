@@ -77,7 +77,7 @@ int
 sys_pgpte(void)
 {
   uint64 va;
-  struct proc *p;  
+  struct proc *p;
 
   p = myproc();
   argaddr(0, &va);
@@ -93,10 +93,20 @@ sys_pgpte(void)
 int
 sys_kpgtbl(void)
 {
-  struct proc *p;  
+  struct proc *p;
 
   p = myproc();
   vmprint(p->pagetable);
+  return 0;
+}
+
+int
+sys_dbkpgtbl(void)
+{
+  struct proc *p;
+
+  p = myproc();
+  dbvmprint(p->pagetable);
   return 0;
 }
 #endif
