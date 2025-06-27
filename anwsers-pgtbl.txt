@@ -1,0 +1,16 @@
+# For every page table entry in the print_pgtbl output, explain what it logically contains and what its permission bits are. Figure 3.4 in the xv6 book might be helpful, although note that the figure might have a slightly different set of pages than process that's being inspected here. Note that xv6 doesn't place the virtual pages consecutively in physical memory.
+
+This was done after part 2
+Last 3 pages
+```
+va 0xFFFFD000 pte 0x21FD4C13 pa 0x87F53000 perm 0x13
+va 0xFFFFE000 pte 0x21FD00C7 pa 0x87F40000 perm 0xC7
+va 0xFFFFF000 pte 0x2000184B pa 0x80006000 perm 0x4B
+```
+
+Going back from the va, it is the trampoline, trapframe page and usyscall pages
+The flags and bit are taken from the `proc_pagetable` in `proc.c`.
+`0x13` is `PTE_R | PTE_X`
+`0xC7` is `PTE_R | PTE_W` and so on
+
+For the

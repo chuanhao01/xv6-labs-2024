@@ -489,30 +489,33 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
 
 
 #ifdef LAB_PGTBL
-void vmprint_pa(pagetable_t pagetable, uint64 va)
+void vmprint_pa(pagetable_t pagetable, uint64 base_va, int level)
 {
-  if (va >= MAXVA){
+  // va is the base va address for that level, i.e. 1 level up
+  if (base_va >= MAXVA){
     panic("vmprint_pa");
   }
-  for (int level = 2; level >= 0; level--)
-  {
-    int page_offset = PX(level, va); // can also be thought of as a page no.
-    pagetable_t pte_pa = &pagetable[page_offset];
+
+  // Going through all pages in this pagetable block
+  for (int i=0; i<512; i++){
+    pagetable_t pte_pa = &pagetable[i];
     pte_t pte = *pte_pa;
     // Check if the PTE is valid
     if ((pte & PTE_V) == 0)
     {
       // Skip this one
-      break;
+      continue;
     }
-
+    uint64 va = base_va + ((uint64)i << PXSHIFT(level));
     printf("..");
     for (int ii = 0; ii < 2 - level; ii++)
     {
       printf(" ..");
     }
-    printf("%p: pte %p pa %p\n", (void *)va, (void *)pte, pte_pa);
-    pagetable = (pagetable_t)PTE2PA(pte);
+    printf("%p: pte %p pa %p\n",(void *)va, (void *)pte, pte_pa);
+    if (level > 0){
+      vmprint_pa((pagetable_t)PTE2PA(pte), va, level-1);
+    }
   }
 }
 
@@ -521,13 +524,9 @@ vmprint(pagetable_t pagetable)
 {
   // your code here
   printf("page table %p\n", pagetable);
-  for (uint64 i = 0; i < 20; i++)
-  {
-    // Step through the va
-    uint64 va = PGSIZE * i;
-    vmprint_pa(pagetable, va);
-  }
+  vmprint_pa(pagetable, 0, 2);
 }
+
 
 // Gonna write all the macros i am using, so I can learn
 #define getmem(addr) ((void *)*addr)
