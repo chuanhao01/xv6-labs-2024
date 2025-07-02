@@ -513,6 +513,11 @@ void vmprint_pa(pagetable_t pagetable, uint64 base_va, int level)
       printf(" ..");
     }
     printf("%p: pte %p pa %p\n",(void *)va, (void *)pte, pte_pa);
+    printf("%p: pte %p pa %p\n",(void *)va, (void *)pte, (void *)PTE2PA(pte));
+    if (level == 0){
+      printf("final %p\n", (void *)PTE2PA(pte));
+      printf("data %p\n", (void *)*((uint64 *)PTE2PA(pte)));
+    }
     if (level > 0){
       vmprint_pa((pagetable_t)PTE2PA(pte), va, level-1);
     }
