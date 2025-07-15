@@ -1,5 +1,7 @@
 # For every page table entry in the print_pgtbl output, explain what it logically contains and what its permission bits are. Figure 3.4 in the xv6 book might be helpful, although note that the figure might have a slightly different set of pages than process that's being inspected here. Note that xv6 doesn't place the virtual pages consecutively in physical memory.
 
+About 6Hs
+
 This was done after part 2
 Last 3 pages
 ```
@@ -13,4 +15,13 @@ The flags and bit are taken from the `proc_pagetable` in `proc.c`.
 `0x13` is `PTE_R | PTE_X`
 `0xC7` is `PTE_R | PTE_W` and so on
 
-For the
+# Speed up system calls
+
+About 12Hs over 3 days
+
+# Print a page table
+
+20Hs so far
+Mainly spent learning how page tables work
+
+#
